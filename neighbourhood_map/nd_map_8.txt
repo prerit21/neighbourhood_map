@@ -1,0 +1,284 @@
+var food_places = [{
+        title: 'Cafe Coffee Day',
+        loc: {
+            lat: 29.970413,
+            lng: 76.836580
+        },
+        f_id: '52a0826a498eb76b5bd8e672',
+        show: true,
+        selected: false
+    },
+    {
+        title: 'Pizza Hut',
+        loc: {
+            lat: 29.970437,
+            lng: 76.837735
+        },
+        f_id: '5721c6c4498e78e3bf6e189b',
+        show: true,
+        selected: false
+    },
+    {
+        title: 'Hotel Pearl Mark',
+        loc: {
+            lat: 29.968667,
+            lng: 76.841214
+        },
+        f_id: '559ebd95498eba17e2ff2deb',
+        show: true,
+        selected: false
+    },
+    {
+        title: 'Hotel Saffron',
+        loc: {
+            lat: 29.974434,
+            lng: 76.873841
+        },
+        f_id: '4f6afa93e4b08d2f3e5f9191',
+        show: true,
+        selected: false
+    },
+    {
+        title: 'Hotel Kimaya',
+        loc: {
+            lat: 29.971583,
+            lng: 76.840418
+        },
+        f_id: '52a0a782498e1167e7290eb9',
+        show: true,
+        selected: false
+    },
+    {
+        title: 'amul-scooping parlour',
+        loc: {
+            lat: 29.973150,
+            lng: 76.854274
+        },
+        f_id: '4f6b39af7bebf48a255e71f1',
+        show: true,
+        selected: false
+    }
+];
+
+var styles = [{
+    featureType: 'water',
+    stylers: [{
+        color: 'blue'
+    }]
+}, {
+    featureType: 'administrative',
+    elementType: 'labels.text.stroke',
+    stylers: [{
+            color: 'red'
+        },
+        {
+            weight: 6
+        }
+    ]
+}, {
+    featureType: 'administrative',
+    elementType: 'labels.text.fill',
+    stylers: [{
+        color: '#e85113'
+    }]
+}, {
+    featureType: 'road.highway',
+    elementType: 'geometry.stroke',
+    stylers: [{
+            color: '#efe9e4'
+        },
+        {
+            lightness: -40
+        }
+    ]
+}, {
+    featureType: 'transit.station',
+    stylers: [{
+            weight: 9
+        },
+        {
+            hue: '#e85113'
+        }
+    ]
+}, {
+    featureType: 'road.highway',
+    elementType: 'labels.icon',
+    stylers: [{
+        visibility: 'off'
+    }]
+}, {
+    featureType: 'water',
+    elementType: 'labels.text.stroke',
+    stylers: [{
+        lightness: 100
+    }]
+}, {
+    featureType: 'water',
+    elementType: 'labels.text.fill',
+    stylers: [{
+        lightness: -100
+    }]
+}, {
+    featureType: 'poi',
+    elementType: 'geometry',
+    stylers: [{
+            visibility: 'on'
+        },
+        {
+            color: '#f0e4d3'
+        }
+    ]
+}, {
+    featureType: 'road.highway',
+    elementType: 'geometry.fill',
+    stylers: [{
+            color: 'black'
+        },
+        {
+            lightness: -25
+        }
+    ]
+}];
+var map;
+var pointers = [];
+
+function initMap() {
+    map = new google.maps.Map(document.getElementById('map'), {
+        center: { // displays the center position of the map where pointers are placed
+            lat: 29.969512,
+            lng: 76.878282
+        },
+        zoom: 16,
+        styles: styles,
+        mapTypeControl: false
+    });
+    ko.applyBindings(new viewmodel());
+}
+
+function googleError() {
+    document.getElementById('map').innerHTML = "ERROR ... Map is out of service";
+}
+
+function viewmodel() {
+    var bound = new google.maps.LatLngBounds();
+    var defaultIcon = makeMarkerIcon('66c2ff'); // Create a "highlighted location" marker color for when the user// mouses over the marker.
+    var highlightedIcon = makeMarkerIcon('ffff00');
+    for (var j = 0; j < self.food_places.length; j++) {
+        var marker = new google.maps.Marker({
+            map: map,
+            position: food_places[j].loc,
+            title: food_places[j].title,
+            icon: defaultIcon,
+            animation: google.maps.Animation.DROP,
+            id: food_places[j].f_id,
+            show: ko.observable(true),
+            selected: ko.observable(food_places[j].selected)
+        });
+
+        var lrgInfwindow = new google.maps.InfoWindow();
+        google.maps.event.addListener(marker, 'click', animation);
+        marker.addListener('click', function() {
+            popInWind(this, lrgInfwindow);
+        });
+        marker.addListener('click', function() {
+            popInWind(this, lrgInfwindow);
+        });
+        self.pointers.push(marker);
+
+        function animation(markanim) {
+            this.setAnimation(google.maps.Animation.BOUNCE); //sets the animation on the marker
+            self.setTimeout(function() {
+                markanim.setAnimation(0);
+            }, 700); //puts the time barrier on the marker
+            markanim = this;
+        }
+        bound.extend(marker.position);
+        map.fitBounds(bound); //displays the map in a particular boundary when the map is loaded
+        marker.addListener('mouseover', function() {
+            this.setIcon(highlightedIcon);
+        });
+        marker.addListener('mouseout', function() {
+            this.setIcon(defaultIcon);
+        });
+    }
+
+    this.showListings = ko.observable('');
+
+    function showListings() { //calls the show listing and diplays the pointers when clicked
+
+        for (var i = 0; i < self.pointers.length; i++) {
+            pointers[i].setMap(map);
+        }
+    }
+    this.display = function(marker) {
+        popInWind(marker, lrgInfwindow);
+        marker.setAnimation(google.maps.Animation.BOUNCE);
+        setTimeout(function() {
+            marker.setAnimation(0);
+        }, 700);
+    };
+    this.enteredText = ko.observable('');
+    this.searchText = function() {
+        lrgInfwindow.close();
+        if (this.enteredText().length === 0) {
+            this.search(true);
+        } else { //will work for the text enetered in the serach box
+            for (i = 0; i < self.pointers.length; i++) {
+                if (pointers[i].title.toLowerCase().indexOf(this.enteredText().toLowerCase()) >= 0) {
+                    pointers[i].show(true);
+                    pointers[i].setVisible(true);
+                } else {
+                    self.pointers[i].show(false);
+                    self.pointers[i].setVisible(false);
+                }
+            }
+        }
+        lrgInfwindow.close();
+    };
+    this.search = function(elem) {
+        for (i = 0; i < self.pointers.length; i++) {
+            pointers[i].show(elem);
+            pointers[i].setVisible(elem);
+        }
+    };
+    this.hideListings = ko.observable('');
+
+    function hideListings() { // hides the pointers when the function is called
+        for (var i = 0; i < self.pointers.length; i++) {
+            pointers[i].setMap(this.false);
+        }
+    }
+
+    function makeMarkerIcon(markerColor) { // the changes the marker apperance when clicked or moved
+        var markerImg = new google.maps.MarkerImage(
+            'http://chart.googleapis.com/chart?chst=d_map_spin&chld=1.15|0|' + markerColor +
+            '|40|_|%E2%80%A2',
+            new google.maps.Size(20, 32),
+            new google.maps.Point(0, 0),
+            new google.maps.Point(11, 35),
+            new google.maps.Size(20, 32));
+        return markerImg;
+    }
+
+    function popInWind(marker, infwindo) {
+        pointers.forEach(function(info) {
+            $.getJSON({ //ajax file is called
+                url: "https://api.foursquare.com/v2/venues/" + info.id + '?client_id=OCOENKHAZZJTCSIZJN2ZCMUEJE01GLSCVBV3PAVGR5KVL2TA&client_secret=0TN5PQPW1CBY2ZGWCPF3GYGPZ500RDUEIE5IPPI4D1W42IVM&v=20170101', //this the foursquare key and secret id with version
+                success: function(data) {
+                    var result = data.response.venue;
+                    info.likes = result.hasOwnProperty('likes') ? result.likes.summary : "Not Available";
+                    var markerinfo = '<h2>' + marker.title + '</h2>' + "<h3>Likes:" + marker.likes;
+                    infwindo.setContent(markerinfo);
+                    infwindo.open(map, marker);
+                    infwindo.addListener('closeclick', function() {
+                        infwindo.marker = 0;
+                    });
+                },
+                error: function(error) { //displays the error when foursquare link does not work
+                    window.alert('Error Loading Foursquare Link');
+                }
+            });
+        });
+    }
+
+}

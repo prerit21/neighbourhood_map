@@ -1,0 +1,47 @@
+html,
+body {
+  font-family: Arial,sans-serif;
+  height:100%;
+  margin:0;
+  padding:0;
+}
+#map{
+  bottom:0px;
+  left:362px;
+  position: absolute;
+  height:100%;
+  right: 0px;
+}
+.searchtextbox{
+  width:15%;
+  height:140%%
+}
+.option-box{
+   border-radius:2px;
+   background: white;
+   border:1px solid #999;
+   height:100%;
+   width: 340px;
+   text-align: left;
+   line-height: 35px;
+   padding: 15px 15px 25px 15px;
+}
+      .Upper {
+    background-color:grey;
+    width: 100%;
+    text-align: center;
+    color: black;
+    border-radius: 44px;
+    font-size: 30px;
+    padding-top: 10px;
+}
+.head{
+  padding-bottom: 20px;
+}
+.list
+{
+  font-style: normal;
+  color: #4d4d4d;
+  text-transform: capitalize;
+  font-size: 30px;
+  }
